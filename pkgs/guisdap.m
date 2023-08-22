@@ -1,10 +1,11 @@
 homedir=getenv('HOME');
-d=fullfile(homedir,'gup'); [~,~]=mkdir(d)
-d=fullfile(homedir,'gup','mygup'); [~,~]=mkdir(d)
-d=fullfile(homedir,'results'); [~,~]=mkdir(d)
-d=fullfile(homedir,'mydata'); [~,~]=mkdir(d)
+sharedir=fullfile(homedir,'work');
+d=fullfile(sharedir,'gup'); [~,~]=mkdir(d)
+gd=fullfile(sharedir,'gup','mygup'); [~,~]=mkdir(gd)
+d=fullfile(sharedir,'results'); [~,~]=mkdir(d)
+d=fullfile(sharedir,'mydata'); [~,~]=mkdir(d)
 d=fullfile(homedir,'tmp'); [~,~]=mkdir(d)
-[~,~]=unix(['ln -s /shared_data ' homedir]);
-addpath([homedir,'/gup/mygup'],'/opt/guisdap/anal','/opt/guisdap/init')
-clear homedir d
+%[~,~]=unix(['ln -s /shared_data ' homedir]);
+addpath(gd,'/opt/guisdap/anal','/opt/guisdap/init')
+clear homedir sharedir d gd
 startup
