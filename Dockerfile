@@ -64,7 +64,7 @@ RUN wget -q https://www.mathworks.com/mpm/glnxa64/mpm && \
     ln -s /opt/matlab/bin/matlab /usr/local/bin/matlab
 
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install --no-install-recommends -y \
-    dbus-x11 xfce4 xfce4-panel xfce4-session xfce4-settings xorg xubuntu-icon-theme websockify \
+    dbus-x11 xfce4 xfce4-panel xfce4-session xfce4-settings xorg xvfb xubuntu-icon-theme websockify \
     && apt-get clean \
     && apt-get -y autoremove \
     && chown -R $NB_UID:$NB_GID $HOME \
