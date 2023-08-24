@@ -11,7 +11,8 @@
 # Run with
 # podman run -v work:/home/jovyan/work --rm --name jupyter -p 8888:8888 eiscat-tools-cfe
 
-FROM jupyter/scipy-notebook AS base_jupyter_image
+#FROM jupyter/scipy-notebook AS base_jupyter_image
+FROM jupyter/datascience-notebook AS base_jupyter_image
 ARG LICENSE_SERVER
 ENV MLM_LICENSE_FILE=${LICENSE_SERVER}
 
@@ -82,6 +83,17 @@ COPY pkgs/*.m /opt/matlab/toolbox/local/
 COPY pkgs/mrc /tmp
 RUN cd /tmp && cat mrc >> /opt/matlab/toolbox/local/matlabrc.m && rm mrc
 
+## jupyter-remote-desktop-proxy recommends TurboVNC for best compatibility
+# Install TurboVNC (https://github.com/TurboVNC/turbovnc)
+ARG TURBOVNC_VERSION=3.0.3
+RUN wget -q "https://sourceforge.net/projects/turbovnc/files/${TURBOVNC_VERSION}/turbovnc_${TURBOVNC_VERSION}_amd64.deb/download" -O turbovnc.deb \
+     && apt-get install -y -q ./turbovnc.deb \
+     # remove light-locker to prevent screen lock
+     && apt-get remove -y -q light-locker \
+     && rm ./turbovnc.deb \
+     && ln -s /opt/TurboVNC/bin/* /usr/local/bin/
+
+
 # Switch back to notebook user
 ARG NB_USER
 USER $NB_USER
@@ -91,6 +103,9 @@ WORKDIR /home/${NB_USER}
 RUN python -m pip install jupyter-remote-desktop-proxy
 RUN python -m pip install jupyter-matlab-proxy
 RUN python -m pip install madrigalWeb
+
+# Fix an issue with TurboVNC: needs explicit display and port no
+COPY scripts/__init__.py /opt/conda/lib/python3.11/site-packages/jupyter_remote_desktop_proxy/
 
 # RUN python -m pip install jupyterlab jupyter-dash jupyterlab-dash \
 # jupyterlab_widgets "ipywidgets>=7,<8"
