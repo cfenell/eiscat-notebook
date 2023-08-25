@@ -95,7 +95,6 @@ RUN wget -q "https://sourceforge.net/projects/turbovnc/files/${TURBOVNC_VERSION}
 
 
 # Switch back to notebook user
-ARG NB_USER
 USER $NB_USER
 WORKDIR /home/${NB_USER}
 
