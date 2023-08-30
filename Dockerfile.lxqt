@@ -11,8 +11,7 @@
 # Run with
 # podman run -v work:/home/jovyan/work --rm --name jupyter -p 8888:8888 eiscat-tools-cfe
 
-#FROM jupyter/scipy-notebook AS base_jupyter_image
-FROM jupyter/datascience-notebook AS base_jupyter_image
+FROM jupyter/scipy-notebook AS base_jupyter_image
 ARG LICENSE_SERVER
 ENV MLM_LICENSE_FILE=${LICENSE_SERVER}
 
@@ -64,8 +63,9 @@ RUN wget -q https://www.mathworks.com/mpm/glnxa64/mpm && \
     rm -f mpm /tmp/mathworks_root.log && \
     ln -s /opt/matlab/bin/matlab /usr/local/bin/matlab
 
+# Install X environments
 RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install --no-install-recommends -y \
-    dbus-x11 xfce4 xfce4-panel xfce4-session xfce4-settings xorg xvfb xubuntu-icon-theme websockify \
+    dbus-x11 xorg libgl1-mesa-glx xdg-utils task-lxqt-desktop xvfb firefox websockify \
     && apt-get clean \
     && apt-get -y autoremove \
     && chown -R $NB_UID:$NB_GID $HOME \
@@ -77,14 +77,13 @@ ARG GIT_TOKEN
 RUN cd /opt && git clone https://${GIT_USER}:${GIT_TOKEN}@git.eiscat.se/cvs/guisdap9.git guisdap \
     && git clone https://${GIT_USER}:${GIT_TOKEN}@git.eiscat.se/cvs/remtg.git remtg \
     && cd /opt/guisdap && bash libinstall.sh \
-    && ln -s /opt/guisdap/bin/guisdap /usr/local/bin/guisdap \
+    && ln -s /opt/guisdap/bin/guisdap /usr/local/bin/ \
     && echo "content_disposition = on" >> /etc/wgetrc
 COPY pkgs/*.m /opt/matlab/toolbox/local/
 COPY pkgs/mrc /tmp
 RUN cd /tmp && cat mrc >> /opt/matlab/toolbox/local/matlabrc.m && rm mrc
 
-## jupyter-remote-desktop-proxy recommends TurboVNC for best compatibility
-# Install TurboVNC (https://github.com/TurboVNC/turbovnc)
+# jupyter-remote-desktop-proxy recommends TurboVNC for best compatibility
 ARG TURBOVNC_VERSION=3.0.3
 RUN wget -q "https://sourceforge.net/projects/turbovnc/files/${TURBOVNC_VERSION}/turbovnc_${TURBOVNC_VERSION}_amd64.deb/download" -O turbovnc.deb \
      && apt-get install -y -q ./turbovnc.deb \
@@ -92,7 +91,7 @@ RUN wget -q "https://sourceforge.net/projects/turbovnc/files/${TURBOVNC_VERSION}
      && apt-get remove -y -q light-locker \
      && rm ./turbovnc.deb \
      && ln -s /opt/TurboVNC/bin/* /usr/local/bin/
-
+ 
 
 # Switch back to notebook user
 USER $NB_USER
@@ -106,6 +105,9 @@ RUN python -m pip install madrigalWeb
 # Fix an issue with TurboVNC: needs explicit display and port no
 COPY scripts/__init__.py /opt/conda/lib/python3.11/site-packages/jupyter_remote_desktop_proxy/
 
+# Change xstartup script for lxqt desktop
+COPY scripts/xstartup /opt/conda/lib/python3.11/site-packages/jupyter_remote_desktop_proxy/share/
+
 # RUN python -m pip install jupyterlab jupyter-dash jupyterlab-dash \
 # jupyterlab_widgets "ipywidgets>=7,<8"
 # RUN jupyter labextension install jupyterlab-dash
@@ -115,3 +117,7 @@ RUN python -m pip install jupyterlab jupyterlab_widgets ipywidgets
 ENV JUPYTER_ENABLE_LAB="yes"
 ARG MW_CONTEXT_TAGS
 ENV MW_CONTEXT_TAGS=${MW_CONTEXT_TAGS}
+
+# Finally set xstartup script executable
+USER root
+RUN chmod +x /opt/conda/lib/python3.11/site-packages/jupyter_remote_desktop_proxy/share/xstartup
