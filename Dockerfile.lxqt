@@ -6,7 +6,7 @@
 # Run with
 # podman|docker run -v work:/home/jovyan/work --rm --name jupyter -p 8888:8888 eiscat-tools-cfe
 
-FROM jupyter/scipy-notebook AS base_jupyter_image
+FROM jupyter/datascience-notebook AS base_jupyter_image
 ARG LICENSE_SERVER
 ENV MLM_LICENSE_FILE=${LICENSE_SERVER}
 
