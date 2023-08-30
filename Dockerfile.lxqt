@@ -1,12 +1,14 @@
 # Eiscat tools image build
 #
 # Build tested with:
-# TMPDIR=${HOME}/tmp/ podman build --format=docker --build-arg
-#  MATLAB_RELEASE=r2023a --build-arg MATLAB_PRODUCT_LIST="MATLAB"
-#  --build-arg LICENSE_SERVER="27000@licence" --build-arg
-#  MW_CONTEXT_TAGS="MATLAB_PROXY:JUPYTER:MPM:V1" --build-arg
-#  GIT_USER=<myname> --build-arg GIT_TOKEN=<secret>
-# -t eiscat-tools-cfe .
+# Podman:
+# TMPDIR=${HOME}/tmp/ podman build --format=docker --build-arg MATLAB_RELEASE=r2023a --build-arg MATLAB_PRODUCT_LIST="MATLAB"
+#  --build-arg LICENSE_SERVER="27000@licence" --build-arg MW_CONTEXT_TAGS="MATLAB_PROXY:JUPYTER:MPM:V1"
+#   --build-arg GIT_USER=<myname> --build-arg GIT_TOKEN=<secret> -f Dockerfile.lxqt -t eiscat-tools-cfe .
+#
+# Docker:
+# docker build --build-arg="MATLAB_RELEASE=r2023a" --build-arg="MATLAB_PRODUCT_LIST=MATLAB" --build-arg="LICENSE_SERVER=27000@licence.eiscat.se"
+# --build-arg="MW_CONTEXT_TAGS=MATLAB_PROXY:JUPYTER:MPM:V1" --build-arg="GIT_USER=usernam" --build-arg="GIT_TOKEN=secret" -f Dockerfile.lxqt -t eiscat-tools-cfe .
 
 # Run with
 # podman|docker run -v work:/home/jovyan/work --rm --name jupyter -p 8888:8888 eiscat-tools-cfe
