@@ -39,7 +39,7 @@ RUN wget ${MATLAB_DEPS_REQUIREMENTS_FILE} -O ${MATLAB_DEPS_REQUIREMENTS_FILE_NAM
     && export needsPy39=`cat ${MATLAB_DEPS_REQUIREMENTS_FILE_NAME} | grep libpython3.9 | wc -l` \
     && if [[ isJammy -eq 1 && needsPy39 -eq 1 ]] ; then apt-get install -y software-properties-common && add-apt-repository ppa:deadsnakes/ppa ; fi \
     && xargs -a ${MATLAB_DEPS_REQUIREMENTS_FILE_NAME} -r apt-get install --no-install-recommends -y \
-    unzip ca-certificates build-essential cmake gfortran \
+    unzip ca-certificates build-essential cmake gcc-10 gfortran-10 \
     libfftw3-3 libfftw3-dev \
     && apt-get clean \
     && apt-get -y autoremove \
@@ -72,13 +72,22 @@ RUN export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -
     && rm -rf /var/lib/apt/lists/*
 
 # Install pithia tools
-RUN cd /tmp && curl -qOJ https://cloud.eiscat.se/s/XGm8jnePJWCwP3A/download && \
-    unzip pkg.zip && \
-    for i in /tmp/pkg/*deb; do dpkg -i $i && rm $i; done && \
-    rm -rf /tmp/pkg*
+# 1. Git version
+ARG GIT_USER
+ARG GIT_TOKEN
+RUN cd /opt && git clone https://${GIT_USER}:${GIT_TOKEN}@git.eiscat.se/cvs/guisdap9.git guisdap \
+    && git clone https://${GIT_USER}:${GIT_TOKEN}@git.eiscat.se/cvs/remtg.git remtg \
+    && cd /opt/guisdap && bash libinstall.sh \
+    && ln -s /opt/guisdap/bin/guisdap /usr/local/bin/
+# 2. debs 
+#RUN cd /tmp && curl -qOJ https://cloud.eiscat.se/s/XGm8jnePJWCwP3A/download && \
+#    unzip pkg.zip && \
+#    for i in /tmp/pkg/*deb; do dpkg -i $i && rm $i; done && \
+#    rm -rf /tmp/pkg*
+###
 COPY pkgs/*.m /opt/matlab/toolbox/local/
 COPY pkgs/mrc /tmp
-RUN cd /tmp && cat mrc >> /opt/matlab/toolbox/local/matlabrc.m && rm mrc
+RUN cd /tmp && cat mrc >> /opt/matlab/toolbox/local/matlabrc.m && rm mrc && echo "content_disposition = on" >> /etc/wgetrc
 
 ## jupyter-remote-desktop-proxy recommends TurboVNC for best compatibility
 # Install TurboVNC (https://github.com/TurboVNC/turbovnc)
